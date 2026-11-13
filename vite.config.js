@@ -3,6 +3,6 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/mtsaccs-bugboard/",
+  base: "/mtsaccs-bugboard-frontend/",
   plugins: [react()],
 });

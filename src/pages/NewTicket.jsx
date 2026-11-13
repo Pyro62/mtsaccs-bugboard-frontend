@@ -1,10 +1,11 @@
-import { supabase } from "../client";
 import Form from "../components/Form";
+import { createTicket } from "../api";
 
 const NewTicket = () => {
   async function handleCreateTicket(ticket) {
-    const { error } = await supabase.from("Tickets").insert(ticket);
-    if (error) throw error;
+    // Throws an Error with the API's message on failure (e.g. a 422 for a bad field),
+    // so Form can catch it and show a toast, same as before.
+    await createTicket(ticket);
   }
 
   return <Form onCreateTicket={handleCreateTicket} />;

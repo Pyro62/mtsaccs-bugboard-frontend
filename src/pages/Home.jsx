@@ -1,48 +1,41 @@
-import { supabase } from "../client";
 import { useEffect, useState } from "react";
-import Board from "../components/Board";
 import toast from "react-hot-toast";
+import Board from "../components/Board";
+import { getTickets, setResolved, deleteTicket } from "../api";
 
 const Home = () => {
   const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
     async function fetchTickets() {
-      const { data, error } = await supabase.from("Tickets").select("*");
-      console.log(data);
-      if (error) throw error;
-
-      setTickets(data);
+      try {
+        setTickets(await getTickets());
+      } catch (err) {
+        toast.error(err.message || "Failed to load tickets!");
+      }
     }
 
     fetchTickets();
   }, []);
 
   async function handleToggleTicket(id, isResolved) {
-    const { error } = await supabase
-      .from("Tickets")
-      .update({ is_resolved: !isResolved })
-      .eq("id", id);
-
-    if (error) {
-      toast.error("Failed to update ticket!");
-      return;
+    try {
+      // The API returns the updated ticket, so the UI shows what the server saved.
+      const updated = await setResolved(id, !isResolved);
+      setTickets((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      toast.success(isResolved ? "Ticket unresolved!" : "Ticket resolved!");
+    } catch (err) {
+      toast.error(err.message || "Failed to update ticket!");
     }
-    setTickets((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, is_resolved: !isResolved } : t)),
-    );
-    if (isResolved) toast.success("Ticket unresolved!");
-    else toast.success("Ticket resolved!");
   }
 
   async function handleDeleteTicket(id) {
-    const { error } = await supabase.from("Tickets").delete().eq("id", id);
-
-    if (error) {
-      toast.error("Failed to delete ticket!");
-      return;
+    try {
+      await deleteTicket(id);
+      setTickets((prev) => prev.filter((t) => t.id !== id));
+    } catch (err) {
+      toast.error(err.message || "Failed to delete ticket!");
     }
-    setTickets((prev) => prev.filter((t) => t.id !== id));
   }
 
   return (
